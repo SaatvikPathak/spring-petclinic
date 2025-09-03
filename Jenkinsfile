@@ -22,8 +22,14 @@ pipeline {
         stage('Test') {
             steps {
                 bat 'mvn test'
+                junit '**/target/surefire-reports/*.xml'
             }
         }
+        stage('Code Coverage') {
+      steps {
+        jacoco execPattern: '**/target/jacoco.exec'
+      }
+    }
     }
 
     post {
