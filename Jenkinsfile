@@ -30,6 +30,23 @@ pipeline {
         jacoco execPattern: '**/target/jacoco.exec'
       }
     }
+    
+     stage('SonarQube Analysis') {
+            environment {
+                SCANNER_HOME = tool 'SonarQube' // Name from Global Tool Config
+            }
+            steps {
+                withSonarQubeEnv('MySonarQube') {  // Name from SonarQube server config
+                    sh '''
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=my-app \
+                          -Dsonar.host.url=http://localhost:9000 \
+                          -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                }
+            }
+        }
+
     }
 
     post {
