@@ -32,20 +32,15 @@ pipeline {
     }
     
      stage('SonarQube Analysis') {
-            environment {
-                SCANNER_HOME = tool 'SonarQube' // Name from Global Tool Config
-            }
-            steps {
-                withSonarQubeEnv('MySonarQube') {  // Name from SonarQube server config
-                    bat '''
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=my-app \
-                          -Dsonar.host.url=http://localhost:9000 \
-                          -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
-                }
-            }
+    steps {
+        withSonarQubeEnv('MySonarQube') {   // matches Jenkins config name
+            bat '''
+                mvn clean verify sonar:sonar \
+                  -Dsonar.projectKey=spring-petclinic
+            '''
         }
+    }
+}
 
     }
 
