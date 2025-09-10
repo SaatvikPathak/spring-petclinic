@@ -37,7 +37,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('MySonarQube') {  // Name from SonarQube server config
-                    sh '''
+                    bat '''
                         mvn sonar:sonar \
                           -Dsonar.projectKey=my-app \
                           -Dsonar.host.url=http://localhost:9000 \
