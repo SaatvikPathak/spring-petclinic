@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.9'    // Configure Maven in Jenkins
-        jdk 'Java 21'      // Configure JDK in Jenkins
+        maven 'Maven'    // Configure Maven in Jenkins
+        jdk 'Java17'      // Configure JDK in Jenkins
     }
 
     stages {
@@ -15,13 +15,13 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat 'mvn clean install'
+                sh 'mvn clean install'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'mvn test'
+                sh 'mvn test'
                 junit '**/target/surefire-reports/*.xml'
             }
         }
@@ -34,7 +34,7 @@ pipeline {
      stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv('MySonarQube') {   // matches Jenkins config name
-            bat '''
+            sh '''
                 mvn clean verify sonar:sonar \
                   -Dsonar.projectKey=spring-petclinic
             '''
