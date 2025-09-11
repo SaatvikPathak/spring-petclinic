@@ -12,10 +12,15 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/SaatvikPathak/spring-petclinic.git'
             }
         }
-
+        
+        stage('Format Code') {
+    steps {
+        sh 'mvn spring-javaformat:apply'
+    }
+}
         stage('Build') {
             steps {
-                sh 'mvn clean install -Dspring-javaformat.skip=true'
+                sh 'mvn clean install'
             }
         }
 
