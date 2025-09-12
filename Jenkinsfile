@@ -36,7 +36,7 @@ pipeline {
       }
     }
     
-    stage('Deploy to Windows') {
+   stage('Deploy to Windows') {
     steps {
         script {
             def windowsHost = "10.81.234.130"
@@ -49,26 +49,27 @@ pipeline {
                 echo "Detected artifact: ${artifact}"
 
                 // Ensure remote directory exists
-                sh """
-                    sshpass -p "$WIN_PASS" ssh -o StrictHostKeyChecking=no ${WIN_USER}@${windowsHost} "powershell -Command 'if (!(Test-Path ${remoteDir})) { New-Item -ItemType Directory -Path ${remoteDir} }'"
-                """
+                sh(label: 'Create remote dir', script: '''
+                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@'"${windowsHost}"' powershell -Command "if (!(Test-Path '''${remoteDir}''')) { New-Item -ItemType Directory -Path '''${remoteDir}''' }"
+                ''')
 
                 // Copy artifact to Windows
-                sh """
-                    sshpass -p "$WIN_PASS" scp -o StrictHostKeyChecking=no ${artifact} ${WIN_USER}@${windowsHost}:${remoteDir}/
-                """
+                sh(label: 'Copy artifact', script: '''
+                    sshpass -p"$WIN_PASS" scp -o StrictHostKeyChecking=no '''${artifact}''' $WIN_USER@'"${windowsHost}"':'${remoteDir}'/
+                ''')
 
                 // Extract just the file name (without path)
                 def artifactName = artifact.tokenize('/').last()
 
                 // Run the app remotely
-                sh """
-                    sshpass -p "$WIN_PASS" ssh -o StrictHostKeyChecking=no ${WIN_USER}@${windowsHost} "powershell -Command 'Start-Process java -ArgumentList \\"-jar ${remoteDir}/${artifactName}\\" -WindowStyle Hidden'"
-                """
+                sh(label: 'Run app remotely', script: '''
+                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@'"${windowsHost}"' powershell -Command "Start-Process java -ArgumentList '-jar '''${remoteDir}/${artifactName}''' ' -WindowStyle Hidden"
+                ''')
             }
         }
     }
 }
+
 
 
     }
