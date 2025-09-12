@@ -48,33 +48,25 @@ pipeline {
                 echo "Detected artifact: ${artifact}"
                 def artifactName = artifact.tokenize('/').last()
 
-                // Inject env vars so we don’t interpolate directly
-                withEnv([
-                    "WIN_HOST=${windowsHost}",
-                    "REMOTE_DIR=${remoteDir}",
-                    "ARTIFACT=${artifact}",
-                    "ARTIFACT_NAME=${artifactName}"
-                ]) {
+                // Ensure remote directory exists
+                sh """
+                    sshpass -p "$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@$windowsHost powershell -Command "if (!(Test-Path '${remoteDir}')) { New-Item -ItemType Directory -Path '${remoteDir}' }"
+                """
 
-                    // Ensure remote directory exists
-                    sh '''
-                        sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@$WIN_HOST powershell -Command "if (!(Test-Path `$Env:REMOTE_DIR)) { New-Item -ItemType Directory -Path `$Env:REMOTE_DIR }"
-                    '''
+                // Copy artifact to Windows
+                sh """
+                    sshpass -p "$WIN_PASS" scp -o StrictHostKeyChecking=no ${artifact} $WIN_USER@$windowsHost:"${remoteDir}/"
+                """
 
-                    // Copy artifact to Windows
-                    sh '''
-                        sshpass -p"$WIN_PASS" scp -o StrictHostKeyChecking=no "$ARTIFACT" $WIN_USER@$WIN_HOST:"$REMOTE_DIR"/
-                    '''
-
-                    // Run the app remotely
-                    sh '''
-                        sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@$WIN_HOST powershell -Command "Start-Process java -ArgumentList '-jar `$Env:REMOTE_DIR/`$Env:ARTIFACT_NAME' -WindowStyle Hidden"
-                    '''
-                }
+                // Run the app remotely
+                sh """
+                    sshpass -p "$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@$windowsHost powershell -Command "Start-Process java -ArgumentList '-jar ${remoteDir}/${artifactName}' -WindowStyle Hidden"
+                """
             }
         }
     }
 }
+
     }
 
     post {
