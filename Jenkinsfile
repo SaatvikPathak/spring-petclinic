@@ -61,9 +61,33 @@ pipeline {
                 // Extract just the file name (without path)
                 def artifactName = artifact.tokenize('/').last()
 
-                // Run the app remotely
+                // Stop old Java process (if running) and start the new JAR
                 sh """
-                    sshpass -p"\${WIN_PASS}" ssh -o StrictHostKeyChecking=no \${WIN_USER}@${windowsHost} powershell -Command "Start-Process java -ArgumentList '-jar ${remoteDir}/${artifactName}' -WindowStyle Hidden"
+                    sshpass -p"\${WIN_PASS}" ssh -o StrictHostKeyChecking=no \${WIN_USER}@${windowsHost} powershell -Command "
+                        Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force;
+                        Start-Process java -ArgumentList '-jar ${remoteDir}/${artifactName}' -WindowStyle Hidden
+                    "
+                """
+            }
+        }
+    }
+}
+
+stage('Verify Deployment') {
+    steps {
+        script {
+            def windowsHost = "10.81.234.130"
+
+            withCredentials([usernamePassword(credentialsId: 'windows-creds', usernameVariable: 'WIN_USER', passwordVariable: 'WIN_PASS')]) {
+                sh """
+                    sshpass -p"\${WIN_PASS}" ssh -o StrictHostKeyChecking=no \${WIN_USER}@${windowsHost} powershell -Command "
+                        if (Get-Process java -ErrorAction SilentlyContinue) {
+                            Write-Output '✅ Application is running.'
+                        } else {
+                            Write-Output '❌ Application failed to start.'
+                            exit 1
+                        }
+                    "
                 """
             }
         }
