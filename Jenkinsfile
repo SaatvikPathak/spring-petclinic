@@ -36,16 +36,7 @@ pipeline {
       }
     }
     
-     stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('MySonarQube') {   // matches Jenkins config name
-            sh '''
-                mvn clean verify sonar:sonar \
-                  -Dsonar.projectKey=spring-petclinic
-            '''
-        }
-    }
-}
+     
 
     }
 
