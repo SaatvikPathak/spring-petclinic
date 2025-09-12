@@ -39,7 +39,7 @@ pipeline {
     stage('Deploy to Windows') {
     steps {
         script {
-            def windowsHost = "10.81.234.131"
+            def windowsHost = "10.81.234.130"
             def remoteDir = "C:/deployments/myapp"
 
             withCredentials([usernamePassword(credentialsId: 'windows-creds', usernameVariable: 'WIN_USER', passwordVariable: 'WIN_PASS')]) {
