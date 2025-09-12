@@ -49,27 +49,26 @@ pipeline {
                 echo "Detected artifact: ${artifact}"
 
                 // Ensure remote directory exists
-                sh(label: 'Create remote dir', script: '''
-                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@'"${windowsHost}"' powershell -Command "if (!(Test-Path '''${remoteDir}''')) { New-Item -ItemType Directory -Path '''${remoteDir}''' }"
-                ''')
+                sh """
+                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@${windowsHost} powershell -Command "if (!(Test-Path ${remoteDir})) { New-Item -ItemType Directory -Path ${remoteDir} }"
+                """
 
                 // Copy artifact to Windows
-                sh(label: 'Copy artifact', script: '''
-                    sshpass -p"$WIN_PASS" scp -o StrictHostKeyChecking=no '''${artifact}''' $WIN_USER@'"${windowsHost}"':'${remoteDir}'/
-                ''')
+                sh """
+                    sshpass -p"$WIN_PASS" scp -o StrictHostKeyChecking=no ${artifact} $WIN_USER@${windowsHost}:${remoteDir}/
+                """
 
                 // Extract just the file name (without path)
                 def artifactName = artifact.tokenize('/').last()
 
                 // Run the app remotely
-                sh(label: 'Run app remotely', script: '''
-                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@'"${windowsHost}"' powershell -Command "Start-Process java -ArgumentList '-jar '''${remoteDir}/${artifactName}''' ' -WindowStyle Hidden"
-                ''')
+                sh """
+                    sshpass -p"$WIN_PASS" ssh -o StrictHostKeyChecking=no $WIN_USER@${windowsHost} powershell -Command "Start-Process java -ArgumentList '-jar ${remoteDir}/${artifactName}' -WindowStyle Hidden"
+                """
             }
         }
     }
 }
-
 
 
     }
